@@ -12,6 +12,7 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
+import java.math.BigDecimal;
 import java.util.List;
 import java.util.Map;
 
@@ -52,14 +53,12 @@ public class AccountController {
     }
 
     @PostMapping("/{id}/deposit")
-    public ResponseEntity<AccountDto> deposit(@PathVariable Long id, @RequestBody Map<String, String> amount) {
-        String amountStr = amount.get("amount");
-        return new ResponseEntity<>(accountService.deposit(id, amountStr), HttpStatus.OK);
+    public ResponseEntity<AccountDto> deposit(@PathVariable Long id, @RequestBody Map<String, BigDecimal> amount) {
+        return new ResponseEntity<>(accountService.deposit(id, amount.get("amount")), HttpStatus.OK);
     }
 
     @PostMapping("/{id}/withdraw")
-    public ResponseEntity<AccountDto> withdraw(@PathVariable Long id, @RequestBody Map<String, String> amount) {
-        String amountStr = amount.get("amount");
-        return new ResponseEntity<>(accountService.withdraw(id, amountStr), HttpStatus.OK);
+    public ResponseEntity<AccountDto> withdraw(@PathVariable Long id, @RequestBody Map<String, BigDecimal> amount) {
+        return new ResponseEntity<>(accountService.withdraw(id, amount.get("amount")), HttpStatus.OK);
     }
 }
