@@ -13,6 +13,7 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
 import java.util.List;
+import java.util.Map;
 
 @RestController
 @RequestMapping("/api/accounts")
@@ -50,6 +51,15 @@ public class AccountController {
         return new ResponseEntity<>(HttpStatus.NO_CONTENT);
     }
 
+    @PostMapping("/{id}/deposit")
+    public ResponseEntity<AccountDto> deposit(@PathVariable Long id, @RequestBody Map<String, String> amount) {
+        String amountStr = amount.get("amount");
+        return new ResponseEntity<>(accountService.deposit(id, amountStr), HttpStatus.OK);
+    }
 
-
+    @PostMapping("/{id}/withdraw")
+    public ResponseEntity<AccountDto> withdraw(@PathVariable Long id, @RequestBody Map<String, String> amount) {
+        String amountStr = amount.get("amount");
+        return new ResponseEntity<>(accountService.withdraw(id, amountStr), HttpStatus.OK);
+    }
 }

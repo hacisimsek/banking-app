@@ -15,7 +15,7 @@ import java.util.List;
 @Service
 public class AccountServiceImpl implements AccountService {
 
-    private AccountRepository accountRepository;
+    private final AccountRepository accountRepository;
 
     public AccountServiceImpl(AccountRepository accountRepository) {
         this.accountRepository = accountRepository;
@@ -30,7 +30,7 @@ public class AccountServiceImpl implements AccountService {
 
     @Override
     public AccountDto getAccount(Long id) {
-        Account account = accountRepository.findById(id).orElse(null);
+        Account account = findAccountById(id);
         return AccountMapper.mapToAccountDto(account);
     }
 
@@ -42,12 +42,8 @@ public class AccountServiceImpl implements AccountService {
 
     @Override
     public AccountDto updateAccount(Long id, AccountDto accountDto) {
-        Account account = accountRepository.findById(id)
-                .orElseThrow(() -> new AccountNotFoundException("Account not found with id: " + id));
-
-        account.setAccountHolderName(accountDto.getAccountHolderName());
-        account.setBalance(accountDto.getBalance());
-
+        Account account = findAccountById(id);
+        updateAccountDetails(account, accountDto);
         Account updatedAccount = accountRepository.save(account);
         return AccountMapper.mapToAccountDto(updatedAccount);
     }
@@ -59,16 +55,30 @@ public class AccountServiceImpl implements AccountService {
 
     @Override
     public AccountDto deposit(Long id, String amount) {
-        Account account = accountRepository.findById(id)
-                .orElseThrow(() -> new AccountNotFoundException("Account not found with id: " + id));
-
+        Account account = findAccountById(id);
         BigDecimal depositAmount = parseAmount(amount);
-        BigDecimal currentBalance = new BigDecimal(account.getBalance());
-        BigDecimal newBalance = currentBalance.add(depositAmount);
-        account.setBalance(newBalance.toString());
-
+        updateAccountBalance(account, depositAmount, true);
         Account updatedAccount = accountRepository.save(account);
         return AccountMapper.mapToAccountDto(updatedAccount);
+    }
+
+    @Override
+    public AccountDto withdraw(Long id, String amount) {
+        Account account = findAccountById(id);
+        BigDecimal withdrawAmount = parseAmount(amount);
+        updateAccountBalance(account, withdrawAmount, false);
+        Account updatedAccount = accountRepository.save(account);
+        return AccountMapper.mapToAccountDto(updatedAccount);
+    }
+
+    private Account findAccountById(Long id) {
+        return accountRepository.findById(id)
+                .orElseThrow(() -> new AccountNotFoundException("Account not found with id: " + id));
+    }
+
+    private void updateAccountDetails(Account account, AccountDto accountDto) {
+        account.setAccountHolderName(accountDto.getAccountHolderName());
+        account.setBalance(accountDto.getBalance());
     }
 
     private BigDecimal parseAmount(String amount) {
@@ -77,5 +87,11 @@ public class AccountServiceImpl implements AccountService {
         } catch (NumberFormatException e) {
             throw new InvalidAmountException("Invalid amount: " + amount, e);
         }
+    }
+
+    private void updateAccountBalance(Account account, BigDecimal amount, boolean isDeposit) {
+        BigDecimal currentBalance = new BigDecimal(account.getBalance());
+        BigDecimal newBalance = isDeposit ? currentBalance.add(amount) : currentBalance.subtract(amount);
+        account.setBalance(newBalance.toString());
     }
 }

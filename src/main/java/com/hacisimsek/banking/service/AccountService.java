@@ -13,4 +13,7 @@ public interface AccountService {
 
     //deposit method
     AccountDto deposit(Long id, String amount);
+
+    //withdraw method
+    AccountDto withdraw(Long id, String amount);
 }
